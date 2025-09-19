@@ -20,10 +20,13 @@ import { Text } from "@/components/ui/text";
 import { RouteGuard } from "@/components/auth/route-guard";
 import ViewPaperDialog from "@/domains/paper/components/view-paper-content";
 import { useState } from "react";
+import { useDebounce } from "use-debounce";
 
 
 export default function Dashboard() {
-  const { data: papers, isPending: isLoadingPapers } = useGetPapers({});
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue] = useDebounce(searchValue, 1000);
+  const { data: papers, isPending: isLoadingPapers } = useGetPapers({search: debouncedSearchValue});
   const [openViewPaperDialog, setOpenViewPaperDialog] = useState(false);
   const [paperInView, setPaperInView] = useState<number | null>(null);
 
@@ -85,7 +88,7 @@ export default function Dashboard() {
         const colorMap = {
           pending: "bg-amber-300",
           published: "bg-green-300",
-          rejected: "bg-red-300",
+          rejected: "bg-red-400",
         };
         return (
           <Badge
@@ -151,7 +154,8 @@ export default function Dashboard() {
               columns={columns}
               data={papers?.data ?? []}
               title="Papers"
-              searchKey="title"
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
             />
           </div>
         </main>
