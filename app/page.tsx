@@ -18,177 +18,119 @@ import useGetPapers from "@/domains/paper/hooks/use-get-papers";
 import { Paper } from "@/domains/paper/types";
 import { Text } from "@/components/ui/text";
 import { RouteGuard } from "@/components/auth/route-guard";
+import ViewPaperDialog from "@/domains/paper/components/view-paper-content";
+import { useState } from "react";
 
-// Sample data type
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  status: "active" | "inactive" | "pending";
-  role: string;
-  joinDate: string;
-};
-
-// Sample data
-const sampleUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    status: "active",
-    role: "Admin",
-    joinDate: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "active",
-    role: "User",
-    joinDate: "2024-02-20",
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    status: "inactive",
-    role: "User",
-    joinDate: "2024-01-10",
-  },
-  {
-    id: "4",
-    name: "Alice Brown",
-    email: "alice@example.com",
-    status: "pending",
-    role: "Moderator",
-    joinDate: "2024-03-05",
-  },
-  {
-    id: "5",
-    name: "Charlie Wilson",
-    email: "charlie@example.com",
-    status: "active",
-    role: "User",
-    joinDate: "2024-02-28",
-  },
-  {
-    id: "6",
-    name: "Diana Davis",
-    email: "diana@example.com",
-    status: "active",
-    role: "Admin",
-    joinDate: "2024-01-25",
-  },
-  {
-    id: "7",
-    name: "Eva Martinez",
-    email: "eva@example.com",
-    status: "inactive",
-    role: "User",
-    joinDate: "2024-03-10",
-  },
-  {
-    id: "8",
-    name: "Frank Garcia",
-    email: "frank@example.com",
-    status: "pending",
-    role: "User",
-    joinDate: "2024-03-15",
-  },
-];
-
-// Column definitions
-const columns: ColumnDef<Paper>[] = [
-  {
-    accessorKey: "title",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-transparent p-0 font-semibold"
-        >
-          Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      return <Text size={"sm"}>{row.original.title}</Text>;
-    },
-  },
-  {
-    accessorKey: "author",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-transparent p-0 font-semibold"
-        >
-          Author
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      return (
-        <Text size={"sm"}>
-          {row.original.user.name}, {row.original.user.email}
-        </Text>
-      );
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <Badge
-          variant={
-            status === "published"
-              ? "default"
-              : status === "pending"
-              ? "secondary"
-              : "destructive"
-          }
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Approve</DropdownMenuItem>
-            <DropdownMenuItem>Reject</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 export default function Dashboard() {
   const { data: papers, isPending: isLoadingPapers } = useGetPapers({});
+  const [openViewPaperDialog, setOpenViewPaperDialog] = useState(false);
+  const [paperInView, setPaperInView] = useState<number | null>(null);
+
+  const handleViewPaper = (paperId: number) => {
+    setPaperInView(paperId);
+    setOpenViewPaperDialog(true);
+  };
+
+  const columns: ColumnDef<Paper>[] = [
+    {
+      accessorKey: "title",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent p-0 font-semibold"
+          >
+            Title
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return (
+          <Text size={"sm"} onClick={() => handleViewPaper(row.original.id)}>
+            {row.original.title}
+          </Text>
+        );
+      },
+    },
+    {
+      accessorKey: "author",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent p-0 font-semibold"
+          >
+            Author
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return (
+          <Text size={"sm"} onClick={() => handleViewPaper(row.original.id)}>
+            {row.original.user.name}, {row.original.user.email}
+          </Text>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <Badge
+            variant={
+              status === "published"
+                ? "default"
+                : status === "pending"
+                ? "secondary"
+                : "destructive"
+            }
+          >
+            {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel className="text-sm">Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-xs">View PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
   return (
     <RouteGuard>
       <div className="flex h-screen bg-background">
         <Sidebar />
         <main className="flex-1 overflow-auto">
+          {paperInView && (
+            <ViewPaperDialog
+              open={openViewPaperDialog}
+              onOpenChange={(open) => setOpenViewPaperDialog(false)}
+              paperId={paperInView}
+            />
+          )}
           <div className="p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
