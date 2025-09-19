@@ -187,7 +187,7 @@ const ViewPaperDialog = ({
           />
         )}
         {isLoadingPaper || !paper ? (
-          <div className="text-center">
+          <div className="flex justify-center">
             <Loader />
           </div>
         ) : (

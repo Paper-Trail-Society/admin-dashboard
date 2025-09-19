@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
   setSearchValue?: (searchValue: string) => void;
 }
 
-// TODO: Add loading state
+// TODO: Add loading state and pagination
 export function DataTable<TData, TValue>({
   columns,
   data,
