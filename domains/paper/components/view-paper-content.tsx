@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { paperKeys } from "@/lib/react-query/query-keys";
+import Loader from "@/components/ui/loader";
 
 const RejectPaperDialog = ({
   open,
@@ -152,7 +153,9 @@ const ViewPaperDialog = ({
 }) => {
   const [openPaperActionDialog, setOpenPaperActionDialog] = useState(false);
   const [paperStatus, setPaperStatus] = useState<"rejected" | "published">();
-  const { data: paper } = useGetPaper({ id: paperId.toString() });
+  const { data: paper, isPending: isLoadingPaper } = useGetPaper({
+    id: paperId.toString(),
+  });
 
   const handleShowActionDialog = (status: "rejected" | "published") => {
     setPaperStatus(status);
@@ -183,84 +186,99 @@ const ViewPaperDialog = ({
             paperTitle={paper?.title || ""}
           />
         )}
-        <div className="flex flex-col gap-10 w-full mx-auto">
-          <div className="flex flex-col gap-4 text-left md:text-center">
-            <DialogTitle>
-              <Text size={"2xl"} weight={"semibold"}>
-                {paper?.title}
-              </Text>
-            </DialogTitle>
-            <Text size={"md"}>{paper?.user.name}</Text>
-
-            <DialogDescription>
-              <Text size={"sm"} className="leading-6">
-                {paper?.abstract}
-              </Text>
-            </DialogDescription>
+        {isLoadingPaper || !paper ? (
+          <div className="text-center">
+            <Loader />
           </div>
+        ) : (
+          <section>
+            <div className="flex flex-col gap-10 w-full mx-auto">
+              <div className="flex flex-col gap-4 text-left md:text-left">
+                <DialogTitle>
+                  <Text size={"xl"} weight={"semibold"}>
+                    {paper.title}
+                  </Text>
+                </DialogTitle>
+                <Text size={"sm"}>{paper?.user.name}</Text>
 
-          <section className="md:w-4/5 w-full mx-auto flex flex-col gap-3">
-            <div>
-              <div className="flex flex-wrap justify-between gap-4 text-xs">
-                <p className="flex gap-2">
-                  <TooltipInfo text="Coming soon">
-                    <Text size={"xs"}>[AI Cross-Ref]</Text>
-                  </TooltipInfo>
-
-                  <Link
-                    href={paper?.ipfsCid ? `/api/ipfs/${paper?.ipfsCid}` : "#"}
-                    target="_blank"
-                    className="hover:underline font-semibold"
-                  >
-                    [View PDF]
-                  </Link>
-                </p>
-
-                <Text size={"xs"}>[Cite as: desci.ng.1308.2025]</Text>
+                <DialogDescription>
+                  <Text size={"sm"} className="leading-6">
+                    {paper.abstract}
+                  </Text>
+                </DialogDescription>
               </div>
-            </div>
-            <div>
-              <p className="flex flex-wrap justify-between gap-4 text-xs">
-                <Text size={"xs"}>
-                  [Uploaded on {format(paper?.createdAt ?? new Date(), "PPpp")}]
+
+              <section className="md:w-4/5 w-full mx-auto flex flex-col gap-3">
+                <div>
+                  <div className="flex flex-wrap justify-between gap-4 text-xs">
+                    <p className="flex gap-2">
+                      <TooltipInfo text="Coming soon">
+                        <Text size={"xs"}>[AI Cross-Ref]</Text>
+                      </TooltipInfo>
+
+                      <Link
+                        href={
+                          paper?.ipfsCid ? `/api/ipfs/${paper.ipfsCid}` : "#"
+                        }
+                        target="_blank"
+                        className="hover:underline font-semibold"
+                      >
+                        [View PDF]
+                      </Link>
+                    </p>
+
+                    <Text size={"xs"}>[Cite as: desci.ng.1308.2025]</Text>
+                  </div>
+                </div>
+                <div>
+                  <p className="flex flex-wrap justify-between gap-4 text-xs">
+                    <Text size={"xs"}>
+                      [Uploaded on{" "}
+                      {format(paper.createdAt ?? new Date(), "PPpp")}]
+                    </Text>
+
+                    {/* TODO: Add an hyperlink to the rendered tags that links to the search page and adds a tag as a query */}
+                    {paper && paper.keywords.length > 0 && (
+                      <Text size={"xs"}>
+                        [
+                        {paper.keywords
+                          .map((keyword) => keyword.name)
+                          .join(", ")}
+                        ]
+                      </Text>
+                    )}
+                  </p>
+                </div>
+              </section>
+
+              <section>
+                <Text as="p" size={"sm"} weight={"semibold"}>
+                  Notes
                 </Text>
 
-                {/* TODO: Add an hyperlink to the rendered tags that links to the search page and adds a tag as a query */}
-                {paper && paper.keywords.length > 0 && (
-                  <Text size={"xs"}>
-                    [{paper.keywords.map((keyword) => keyword.name).join(", ")}]
-                  </Text>
-                )}
-              </p>
+                <Text as="p" size={"sm"} className="leading-6">
+                  {paper?.notes}
+                </Text>
+              </section>
+            </div>
+
+            <div className="flex justify-between w-2/3 mx-auto my-4">
+              <Button
+                variant={"destructive"}
+                className="px-8 py-3 text-white font-medium"
+                onClick={() => handleShowActionDialog("rejected")}
+              >
+                Reject
+              </Button>
+              <Button
+                className="px-8 py-3 text-white font-medium"
+                onClick={() => handleShowActionDialog("published")}
+              >
+                Approve
+              </Button>
             </div>
           </section>
-
-          <section>
-            <Text as="p" size={"md"} weight={"semibold"}>
-              Notes
-            </Text>
-
-            <Text as="p" size={"sm"} className="leading-6">
-              {paper?.notes}
-            </Text>
-          </section>
-        </div>
-
-        <div className="flex justify-between w-2/3 mx-auto">
-          <Button
-            variant={"destructive"}
-            className="px-8 py-3 text-white font-medium"
-            onClick={() => handleShowActionDialog("rejected")}
-          >
-            Reject
-          </Button>
-          <Button
-            className="px-8 py-3 text-white font-medium"
-            onClick={() => handleShowActionDialog("published")}
-          >
-            Approve
-          </Button>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

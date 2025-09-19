@@ -9,7 +9,7 @@ const useGetPapers = ({
   userId,
   page,
   isEnabled = true,
-  status = 'pending'
+  status
 }: {
   search?: string;
   userId?: string;

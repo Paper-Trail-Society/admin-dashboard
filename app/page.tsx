@@ -82,8 +82,14 @@ export default function Dashboard() {
       header: "Status",
       cell: ({ row }) => {
         const status = row.original.status;
+        const colorMap = {
+          pending: "bg-amber-300",
+          published: "bg-green-300",
+          rejected: "bg-red-300",
+        };
         return (
           <Badge
+          className={colorMap[status]}
             variant={
               status === "published"
                 ? "default"
