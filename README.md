@@ -16,5 +16,5 @@ cp .env.example .env
 
 - Run the development server
 ```sh
-    pnpm run dev:tsx
+    pnpm run dev
 ```
