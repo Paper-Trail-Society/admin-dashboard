@@ -15,7 +15,7 @@ export const GET = async (_: NextRequest, { params }: { params: Promise<{ cid: s
   }
 
   try {
-    const response = await fetch(`https://papers.desci.ng/ipfs/${cid}?pinataGatewayToken=${process.env.PINATA_GATEWAY_KEY}`, {
+    const response = await fetch(`${PINATA_GATEWAY_URL}/ipfs/${cid}?pinataGatewayToken=${PINATA_GATEWAY_KEY}`, {
     });
 
     if (!response.ok) {

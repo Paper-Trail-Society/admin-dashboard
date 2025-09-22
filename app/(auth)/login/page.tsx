@@ -35,7 +35,7 @@ function LoginContent() {
       const user = data.user;
       // push the `user` object into the `user` cache in react query
       queryClient.setQueryData(["user"], user);
-      router.push("/dashboard");
+      router.push("/");
     },
     onError: (error) => {
       let errorMessage = error.message || "An error occurred during login";

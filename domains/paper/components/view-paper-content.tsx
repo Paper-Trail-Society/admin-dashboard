@@ -1,6 +1,6 @@
 "use client";
 import { Text } from "@/components/ui/text";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import useGetPaper from "../hooks/use-get-paper";
 import { TooltipInfo } from "@/components/ui/tooltip-info";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
-import useUpdatePaperStatus from "../hooks/use-update-paper-status";
+import useUpdatePaper from "../hooks/use-update-paper";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -16,6 +16,9 @@ import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { paperKeys } from "@/lib/react-query/query-keys";
 import Loader from "@/components/ui/loader";
+import Image from "next/image";
+
+const ALLOWED_FILE_TYPES = ["application/pdf"];
 
 const RejectPaperDialog = ({
   open,
@@ -29,7 +32,7 @@ const RejectPaperDialog = ({
   paperTitle: string;
 }) => {
   const queryClient = useQueryClient();
-  const updatePaperStatusMutation = useUpdatePaperStatus({ paperId });
+  const updatePaperStatusMutation = useUpdatePaper({ paperId });
   const [rejectionReason, setRejectionReason] = useState("");
 
   const handleConfirm = () => {
@@ -103,11 +106,14 @@ const PublishPaperDialog = ({
   paperTitle: string;
 }) => {
   const queryClient = useQueryClient();
-  const updatePaperStatusMutation = useUpdatePaperStatus({ paperId });
+  const updatePaperStatusMutation = useUpdatePaper({ paperId });
+  const fileUploadComponentRef = useRef<HTMLInputElement>(null);
+
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   const handleConfirm = () => {
     updatePaperStatusMutation.mutate(
-      { status: "published" },
+      { status: "published", file: selectedFile },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: paperKeys.list() });
@@ -130,8 +136,67 @@ const PublishPaperDialog = ({
           <DialogTitle>
             Are you sure you want to publish the paper "{paperTitle}"?
           </DialogTitle>
+
+          <div className="flex flex-col gap-1">
+            <Label className="text-sm text-text font-bold">
+              Upload reviewed paper
+            </Label>
+            <div
+              className="bg-white p-10 flex flex-col items-center rounded-md border-dashed border-2 border-gray-300"
+              onClick={() => fileUploadComponentRef.current?.click()}
+            >
+              <input
+                ref={fileUploadComponentRef}
+                type="file"
+                className="hidden"
+                id="file"
+                accept={ALLOWED_FILE_TYPES.join(", ")}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    toast.error(
+                      "File size should be less than or equal to 10MB"
+                    );
+                    e.target.value = "";
+                  } else {
+                    file && setSelectedFile(file);
+                  }
+                }}
+              />
+              <Image
+                src="/assets/page-facing-up.png"
+                width={30}
+                height={30}
+                alt="page-facing-up"
+              />
+
+              <div className="text-center">
+                {selectedFile && (
+                  <Text
+                    variant={"secondary"}
+                    className="cursor-default hover:text-text transition"
+                  >
+                    {selectedFile.name}
+                  </Text>
+                )}
+
+                <Text size={"xs"} variant={"secondary"}>
+                  Click to select or drag and drop your paper (PDF)
+                </Text>
+
+                {!selectedFile && (
+                  <Text size={"xs"} variant={"secondary"}>
+                    (max. 10MB)
+                  </Text>
+                )}
+              </div>
+            </div>
+            {!selectedFile && (
+              <Text className="text-xs text-rose-600">Select a file</Text>
+            )}
+          </div>
           <Button
-            disabled={updatePaperStatusMutation.isPending}
+            disabled={!selectedFile || updatePaperStatusMutation.isPending}
             onClick={handleConfirm}
           >
             Confirm

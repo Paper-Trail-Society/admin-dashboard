@@ -21,12 +21,14 @@ import { RouteGuard } from "@/components/auth/route-guard";
 import ViewPaperDialog from "@/domains/paper/components/view-paper-content";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-
+import Link from "next/link";
 
 export default function Dashboard() {
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearchValue] = useDebounce(searchValue, 1000);
-  const { data: papers, isPending: isLoadingPapers } = useGetPapers({search: debouncedSearchValue});
+  const { data: papers, isPending: isLoadingPapers } = useGetPapers({
+    search: debouncedSearchValue,
+  });
   const [openViewPaperDialog, setOpenViewPaperDialog] = useState(false);
   const [paperInView, setPaperInView] = useState<number | null>(null);
 
@@ -92,7 +94,7 @@ export default function Dashboard() {
         };
         return (
           <Badge
-          className={colorMap[status]}
+            className={colorMap[status]}
             variant={
               status === "published"
                 ? "default"
@@ -109,6 +111,7 @@ export default function Dashboard() {
     {
       id: "actions",
       cell: ({ row }) => {
+        const paper = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -120,7 +123,11 @@ export default function Dashboard() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel className="text-sm">Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-xs">View PDF</DropdownMenuItem>
+              <DropdownMenuItem className="text-xs">
+                <Link href={paper.ipfsCid ? `/api/ipfs/${paper.ipfsCid}` : "#"}>
+                  View PDF
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
