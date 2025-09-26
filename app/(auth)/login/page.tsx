@@ -96,7 +96,7 @@ function LoginContent() {
 
         <section className="md:w-1/3 w-full mx-auto my-10 space-y-6 px-8">
           <Text className="text-center leading-6 text-3xl">
-            Welcome to Desci NG
+            Desci NG Admin
           </Text>
 
           <Text className="text-center leading-2">
@@ -146,17 +146,6 @@ function LoginContent() {
               </Button>
             </form>
           </Form>
-
-          {/* <SocialAuth mode="signin" /> */}
-
-          <div className="flex justify-between text-sm text-gray-600">
-            <Link href="/signup" className="hover:underline">
-              Create an account
-            </Link>
-            <Link href="/forgot-password" className="hover:underline">
-              Forgot password?
-            </Link>
-          </div>
         </section>
       </main>
     </div>
