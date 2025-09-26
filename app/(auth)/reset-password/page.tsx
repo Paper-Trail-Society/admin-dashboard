@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Text } from "@/components/ui/text";
 import TextField from "@/components/ui/text-field";
-import { useNewPassword } from "@/domains/auth/hooks";
+import { useNewPassword } from "@/domains/auth/hooks/use-new-password";
 import { NewPasswordFormData, newPasswordSchema } from "@/domains/auth/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
